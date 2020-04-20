@@ -1,0 +1,1 @@
+# why-cellar-is-safe

@@ -4,6 +4,7 @@ use ggez::nalgebra as na;
 use ggez::{graphics, Context, ContextBuilder, GameResult};
 
 mod player;
+mod citizen;
 
 const SCREEN_SIZE: (f32, f32) = (600.0, 800.0);
 
@@ -28,6 +29,7 @@ fn main() {
 
 struct MyGame {
     p: player::Player,
+    citizen : citizen::Citizen,
 }
 
 impl MyGame {
@@ -35,6 +37,7 @@ impl MyGame {
         // Load/create resources such as images here.
         MyGame {
             p: player::default_player(),
+            citizen: citizen::random_citizen(SCREEN_SIZE),
         }
     }
 }
@@ -44,12 +47,13 @@ impl EventHandler for MyGame {
         self.p
             .move_player(SCREEN_SIZE, input::keyboard::pressed_keys(ctx));
         self.p.sneeze();
+        self.citizen.move_citizen();
         Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         graphics::clear(ctx, graphics::WHITE);
-        let circle = graphics::Mesh::new_circle(
+        let player_body = graphics::Mesh::new_circle(
             ctx,
             graphics::DrawMode::fill(),
             na::Point2::new(self.p.get_x(), self.p.get_y()),
@@ -57,7 +61,19 @@ impl EventHandler for MyGame {
             2.0,
             graphics::BLACK,
         )?;
-
+        let citizen_body = graphics::Mesh::new_circle(
+          ctx,
+          graphics::DrawMode::fill(),
+          na::Point2::new(self.citizen.get_x(), self.citizen.get_y()),
+          self.citizen.get_radius(),
+          2.0,
+          graphics::Color {
+            r: 0.2,
+            g: 0.0,
+            b: 0.0,
+            a: 0.9,
+        },
+      )?;
         let sneeze = graphics::Mesh::new_circle(
             ctx,
             graphics::DrawMode::fill(),
@@ -72,7 +88,8 @@ impl EventHandler for MyGame {
             },
         )?;
 
-        graphics::draw(ctx, &circle, graphics::DrawParam::default())?;
+        graphics::draw(ctx, &player_body, graphics::DrawParam::default())?;
+        graphics::draw(ctx, &citizen_body, graphics::DrawParam::default())?;
         if self.p.is_sneezing {
             graphics::draw(ctx, &sneeze, graphics::DrawParam::default())?;
         }
@@ -87,6 +104,7 @@ impl EventHandler for MyGame {
         _y: f32,
     ) {
         self.p.set_sneeze(true);
+        self.citizen = citizen::random_citizen(SCREEN_SIZE);
     }
 
     fn mouse_button_up_event(

@@ -27,9 +27,27 @@ impl Citizen {
         self.radius
     }
 
-    pub fn move_citizen(&mut self) {
+    pub fn move_citizen(&mut self, (width, height): (f32, f32)) {
         let vx = self.angle.sin();
         let vy = self.angle.cos();
+
+        if self.pos_x + self.radius < 0.0 {
+            self.pos_x = width + self.radius;
+            self.is_infected = false;
+        }
+        if self.pos_x - self.radius > width {
+            self.pos_x = -self.radius;
+            self.is_infected = false;
+        }
+        if self.pos_y - self.radius > height {
+            self.pos_y = -self.radius;
+            self.is_infected = false;
+        }
+
+        if self.pos_y + self.radius < 0.0 {
+            self.pos_y = height + self.radius;
+            self.is_infected = false;
+        }
 
         let distance_x = self.velocity_x * (vx as f32);
         let distance_y = self.velocity_y * (vy as f32);

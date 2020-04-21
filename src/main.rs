@@ -8,6 +8,7 @@ mod citizen;
 mod player;
 
 const SCREEN_SIZE: (f32, f32) = (800.0, 600.0);
+const CITIZENT_QUANTITY: i32 = 50;
 
 fn main() {
     // Make a Context.
@@ -30,17 +31,19 @@ fn main() {
 
 struct MyGame {
     p: player::Player,
-    citizen: citizen::Citizen,
     citizens: LinkedList<citizen::Citizen>,
 }
 
 impl MyGame {
     pub fn new(_ctx: &mut Context) -> MyGame {
         // Load/create resources such as images here.
+        let mut l = LinkedList::new();
+        for _ in 0..CITIZENT_QUANTITY {
+            l.push_back(citizen::random_citizen(SCREEN_SIZE));
+        }
         MyGame {
             p: player::default_player(),
-            citizen: citizen::random_citizen(SCREEN_SIZE),
-            citizens: LinkedList::new(),
+            citizens: l,
         }
     }
 
@@ -61,15 +64,6 @@ impl MyGame {
             color,
         )?;
         graphics::draw(ctx, &circle, graphics::DrawParam::default())
-    }
-
-    fn filter_citizens(&mut self) {
-        self.citizens = self
-            .citizens
-            .iter()
-            .filter(|cit| !(cit.is_outside(SCREEN_SIZE)))
-            .copied()
-            .collect();
     }
 
     fn is_victim(cit: citizen::Citizen, pl: player::Player) -> bool {
@@ -100,23 +94,17 @@ impl EventHandler for MyGame {
         // Change citizen angle every second
 
         while timer::check_update_time(ctx, 1) {
-            for _ in 0..6 {
-                self.citizens
-                    .push_front(citizen::random_citizen(SCREEN_SIZE));
-            }
             self.change_citizens_angle();
         }
+
         self.infection();
         self.p
             .move_player(SCREEN_SIZE, input::keyboard::pressed_keys(ctx));
         self.p.sneeze();
 
-        self.filter_citizens();
-
         for cit in self.citizens.iter_mut() {
-            cit.move_citizen();
+            cit.move_citizen(SCREEN_SIZE);
         }
-        self.citizen.move_citizen();
         Ok(())
     }
 
@@ -125,9 +113,9 @@ impl EventHandler for MyGame {
         graphics::clear(
             ctx,
             graphics::Color {
-                r: 0.1,
-                g: 0.0,
-                b: 0.2,
+                r: 0.404,
+                g: 0.561,
+                b: 0.220,
                 a: 1.0,
             },
         );
@@ -138,16 +126,21 @@ impl EventHandler for MyGame {
             self.p.get_x(),
             self.p.get_y(),
             self.p.get_radius(),
-            graphics::BLACK,
+            graphics::Color {
+                r: 0.8,
+                g: 0.624,
+                b: 0.353,
+                a: 1.0,
+            },
         )?;
         // Draw citizens
         for cit in self.citizens.iter() {
             let col = if cit.get_is_infected() {
                 graphics::Color {
-                    r: 0.2,
-                    g: 0.0,
-                    b: 0.0,
-                    a: 0.9,
+                    r: 0.514,
+                    g: 0.004,
+                    b: 0.145,
+                    a: 1.0,
                 }
             } else {
                 graphics::Color {

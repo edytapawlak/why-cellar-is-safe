@@ -167,15 +167,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d8c1fef690941d3e7788d328517591fecc684c084084702d6ff1641e993699a"
 
 [[package]]
-name = "bouncy"
-version = "0.1.0"
-dependencies = [
- "ggez",
- "rand 0.7.3",
- "rand_distr",
-]
-
-[[package]]
 name = "bumpalo"
 version = "3.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2210,6 +2201,15 @@ checksum = "520ab0fd578017a0ee2206623ba9ef4afe5e8f23ca7b42f6acfba2f4e66b1628"
 dependencies = [
  "dlib",
  "lazy_static",
+]
+
+[[package]]
+name = "why-cellar-is-safe"
+version = "0.1.0"
+dependencies = [
+ "ggez",
+ "rand 0.7.3",
+ "rand_distr",
 ]
 
 [[package]]

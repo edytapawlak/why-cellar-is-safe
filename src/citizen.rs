@@ -60,13 +60,6 @@ impl Citizen {
         self.angle = rng.gen_range(0.0, 360.0);
     }
 
-    pub fn is_outside(self, (width, height): (f32, f32)) -> bool {
-        self.pos_x - self.radius > width
-            || self.pos_x + self.radius < 0.0
-            || self.pos_y - self.radius > height
-            || self.pos_y + self.radius < 0.0
-    }
-
     pub fn infect(&mut self) {
         self.is_infected = true;
     }
@@ -84,7 +77,7 @@ pub fn random_citizen((width, height): (f32, f32)) -> Citizen {
         radius: 20.0,
         velocity_x: 5.0,
         velocity_y: 5.0,
-        angle: 0.0,
+        angle: rng.gen_range(0.0, 360.0),
         // resistance_points: 0.0,
         is_infected: false,
     }

@@ -2,7 +2,7 @@ use ggez::event::{self, EventHandler, MouseButton};
 use ggez::input;
 use ggez::nalgebra as na;
 use ggez::{graphics, timer, Context, ContextBuilder, GameResult};
-use std::collections::LinkedList;
+use rand::Rng;
 
 mod citizen;
 mod player;
@@ -31,15 +31,15 @@ fn main() {
 
 struct MyGame {
     p: player::Player,
-    citizens: LinkedList<citizen::Citizen>,
+    citizens: Vec<citizen::Citizen>,
 }
 
 impl MyGame {
     pub fn new(_ctx: &mut Context) -> MyGame {
         // Load/create resources such as images here.
-        let mut l = LinkedList::new();
+        let mut l = Vec::new();
         for _ in 0..CITIZENT_QUANTITY {
-            l.push_back(citizen::random_citizen(SCREEN_SIZE));
+            l.push(citizen::random_citizen(SCREEN_SIZE));
         }
         MyGame {
             p: player::default_player(),
@@ -81,12 +81,6 @@ impl MyGame {
             }
         }
     }
-
-    fn change_citizens_angle(&mut self) {
-        for cit in self.citizens.iter_mut() {
-            cit.change_angle();
-        }
-    }
 }
 
 impl EventHandler for MyGame {
@@ -94,7 +88,9 @@ impl EventHandler for MyGame {
         // Change citizen angle every second
 
         while timer::check_update_time(ctx, 1) {
-            self.change_citizens_angle();
+            let mut rng = rand::thread_rng();
+            let r = rng.gen_range(0, 10);
+            self.citizens[r].change_angle();
         }
 
         self.infection();

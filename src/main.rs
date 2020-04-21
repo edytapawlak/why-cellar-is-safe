@@ -1,10 +1,10 @@
 use ggez::event::{self, EventHandler, MouseButton};
 use ggez::input;
 use ggez::nalgebra as na;
-use ggez::{graphics, Context, ContextBuilder, GameResult};
+use ggez::{graphics, timer, Context, ContextBuilder, GameResult};
 
-mod player;
 mod citizen;
+mod player;
 
 const SCREEN_SIZE: (f32, f32) = (600.0, 800.0);
 
@@ -29,7 +29,7 @@ fn main() {
 
 struct MyGame {
     p: player::Player,
-    citizen : citizen::Citizen,
+    citizen: citizen::Citizen,
 }
 
 impl MyGame {
@@ -40,10 +40,34 @@ impl MyGame {
             citizen: citizen::random_citizen(SCREEN_SIZE),
         }
     }
+
+    pub fn draw_circle(
+        &self,
+        ctx: &mut Context,
+        pos_x: f32,
+        pos_y: f32,
+        radius: f32,
+        color: graphics::Color,
+    ) -> GameResult<()> {
+        let circle = graphics::Mesh::new_circle(
+            ctx,
+            graphics::DrawMode::fill(),
+            na::Point2::new(pos_x, pos_y),
+            radius,
+            2.0,
+            color,
+        )?;
+        graphics::draw(ctx, &circle, graphics::DrawParam::default())
+    }
 }
 
 impl EventHandler for MyGame {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
+        // Change citizen angle every second
+        while timer::check_update_time(ctx, 2) {
+            self.citizen.change_angle();
+        }
+
         self.p
             .move_player(SCREEN_SIZE, input::keyboard::pressed_keys(ctx));
         self.p.sneeze();
@@ -51,47 +75,45 @@ impl EventHandler for MyGame {
         Ok(())
     }
 
+    /* DRAWING */
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         graphics::clear(ctx, graphics::WHITE);
-        let player_body = graphics::Mesh::new_circle(
+
+        // Draw player
+        self.draw_circle(
             ctx,
-            graphics::DrawMode::fill(),
-            na::Point2::new(self.p.get_x(), self.p.get_y()),
+            self.p.get_x(),
+            self.p.get_y(),
             self.p.get_width() / 2.0,
-            2.0,
             graphics::BLACK,
         )?;
-        let citizen_body = graphics::Mesh::new_circle(
-          ctx,
-          graphics::DrawMode::fill(),
-          na::Point2::new(self.citizen.get_x(), self.citizen.get_y()),
-          self.citizen.get_radius(),
-          2.0,
-          graphics::Color {
-            r: 0.2,
-            g: 0.0,
-            b: 0.0,
-            a: 0.9,
-        },
-      )?;
-        let sneeze = graphics::Mesh::new_circle(
+        // Draw citizen
+        self.draw_circle(
             ctx,
-            graphics::DrawMode::fill(),
-            na::Point2::new(self.p.get_x(), self.p.get_y()),
-            self.p.get_width() + self.p.get_sneeze_range(),
-            2.0,
+            self.citizen.get_x(),
+            self.citizen.get_y(),
+            self.citizen.get_radius(),
             graphics::Color {
                 r: 0.2,
-                g: 0.2,
-                b: 0.2,
-                a: 0.3,
+                g: 0.0,
+                b: 0.0,
+                a: 0.9,
             },
         )?;
-
-        graphics::draw(ctx, &player_body, graphics::DrawParam::default())?;
-        graphics::draw(ctx, &citizen_body, graphics::DrawParam::default())?;
         if self.p.is_sneezing {
-            graphics::draw(ctx, &sneeze, graphics::DrawParam::default())?;
+            // Draw sneezing
+            self.draw_circle(
+                ctx,
+                self.p.get_x(),
+                self.p.get_y(),
+                self.p.get_width() + self.p.get_sneeze_range(),
+                graphics::Color {
+                    r: 0.2,
+                    g: 0.2,
+                    b: 0.2,
+                    a: 0.3,
+                },
+            )?;
         }
         graphics::present(ctx)
     }
@@ -104,7 +126,6 @@ impl EventHandler for MyGame {
         _y: f32,
     ) {
         self.p.set_sneeze(true);
-        self.citizen = citizen::random_citizen(SCREEN_SIZE);
     }
 
     fn mouse_button_up_event(

@@ -52,7 +52,6 @@ impl Player {
         if self.is_sneezing {
             if self.sneeze_range <= self.sneeze_max {
                 self.sneeze_range += 10.0;
-                println!("sneee {}", self.sneeze_range);
             }
         } else {
             self.sneeze_range = 0.0;

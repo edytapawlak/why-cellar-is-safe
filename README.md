@@ -1,13 +1,13 @@
 # why-cellar-is-safe
 
-Small epidemic game. You are the pandemic antyhero who is infected by a virus and your aim is to spread it among other citizens.
+Small epidemic game. You are the pandemic (anti)hero infected by a virus and your aim is to spread it among other citizens.
 :smiling_imp:
 
-Project is under active development, more features will be soon.
+Project is under active development, more features soon.
 
 ## Usage
 
-Use arrows to move the antyhero. Press Left Mouse Button to sneeze.
+Use arrows to move the (anti)hero. Press Left Mouse Button to sneeze.
 
 ## Preview
 

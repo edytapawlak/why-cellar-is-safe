@@ -40,6 +40,13 @@ impl Citizen {
         let mut rng = rand::thread_rng();
         self.angle = rng.gen_range(0.0, 360.0);
     }
+
+    pub fn is_outside(self, (width, height): (f32, f32)) -> bool {
+        self.pos_x - self.radius > width
+            || self.pos_x + self.radius < 0.0
+            || self.pos_y - self.radius > height
+            || self.pos_y + self.radius < 0.0
+    }
 }
 
 pub fn random_citizen((width, height): (f32, f32)) -> Citizen {

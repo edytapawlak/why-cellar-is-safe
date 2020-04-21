@@ -2,6 +2,7 @@ use ggez::event::{self, EventHandler, MouseButton};
 use ggez::input;
 use ggez::nalgebra as na;
 use ggez::{graphics, timer, Context, ContextBuilder, GameResult};
+use std::collections::LinkedList;
 
 mod citizen;
 mod player;
@@ -30,6 +31,7 @@ fn main() {
 struct MyGame {
     p: player::Player,
     citizen: citizen::Citizen,
+    citizens: LinkedList<citizen::Citizen>,
 }
 
 impl MyGame {
@@ -38,6 +40,7 @@ impl MyGame {
         MyGame {
             p: player::default_player(),
             citizen: citizen::random_citizen(SCREEN_SIZE),
+            citizens: LinkedList::new(),
         }
     }
 
@@ -59,18 +62,43 @@ impl MyGame {
         )?;
         graphics::draw(ctx, &circle, graphics::DrawParam::default())
     }
+
+    fn filter_citizens(&mut self) {
+        self.citizens = self
+            .citizens
+            .iter()
+            .filter(|cit| ! (cit.is_outside(SCREEN_SIZE)))
+            .map(|&x| x)
+            .collect();
+    }
+    fn change_citizens_angle(&mut self) {
+      
+      for cit in self.citizens.iter_mut() {
+        cit.change_angle();
+        
+      }
+    }
 }
 
 impl EventHandler for MyGame {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
         // Change citizen angle every second
-        while timer::check_update_time(ctx, 2) {
-            self.citizen.change_angle();
+     
+        while timer::check_update_time(ctx, 1) {
+            self.citizens
+                .push_front(citizen::random_citizen(SCREEN_SIZE));
+            self.change_citizens_angle();
         }
 
         self.p
             .move_player(SCREEN_SIZE, input::keyboard::pressed_keys(ctx));
         self.p.sneeze();
+
+        self.filter_citizens();
+
+        for cit in self.citizens.iter_mut() {
+            cit.move_citizen();
+        }
         self.citizen.move_citizen();
         Ok(())
     }
@@ -100,6 +128,22 @@ impl EventHandler for MyGame {
                 a: 0.9,
             },
         )?;
+
+        for cit in self.citizens.iter() {
+            self.draw_circle(
+                ctx,
+                cit.get_x(),
+                cit.get_y(),
+                cit.get_radius(),
+                graphics::Color {
+                    r: 0.2,
+                    g: 0.0,
+                    b: 0.0,
+                    a: 0.9,
+                },
+            )?;
+        }
+
         if self.p.is_sneezing {
             // Draw sneezing
             self.draw_circle(

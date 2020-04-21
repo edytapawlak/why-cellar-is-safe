@@ -1,4 +1,5 @@
-use ggez::event::{self, EventHandler, KeyCode, KeyMods, MouseButton};
+use ggez::event::{self, EventHandler, MouseButton};
+use ggez::input;
 use ggez::nalgebra as na;
 use ggez::{graphics, Context, ContextBuilder, GameResult};
 
@@ -8,7 +9,7 @@ const SCREEN_SIZE: (f32, f32) = (600.0, 800.0);
 
 fn main() {
     // Make a Context.
-    let (mut ctx, mut event_loop) = ContextBuilder::new("Game in hero", "E")
+    let (mut ctx, mut event_loop) = ContextBuilder::new("Why cellar is safe", "E")
         .window_mode(ggez::conf::WindowMode::default().dimensions(SCREEN_SIZE.0, SCREEN_SIZE.1))
         .build()
         .expect("aieee, could not create ggez context!");
@@ -39,9 +40,11 @@ impl MyGame {
 }
 
 impl EventHandler for MyGame {
-    fn update(&mut self, _ctx: &mut Context) -> GameResult<()> {
-      self.p.sneeze();
-      Ok(())
+    fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
+        self.p
+            .move_player(SCREEN_SIZE, input::keyboard::pressed_keys(ctx));
+        self.p.sneeze();
+        Ok(())
     }
 
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
@@ -52,7 +55,7 @@ impl EventHandler for MyGame {
             na::Point2::new(self.p.get_x(), self.p.get_y()),
             self.p.get_width() / 2.0,
             2.0,
-            graphics::BLACK,  
+            graphics::BLACK,
         )?;
 
         let sneeze = graphics::Mesh::new_circle(
@@ -61,7 +64,12 @@ impl EventHandler for MyGame {
             na::Point2::new(self.p.get_x(), self.p.get_y()),
             self.p.get_width() + self.p.get_sneeze_range(),
             2.0,
-            graphics::Color {r: 0.2, g: 0.2, b: 0.2, a: 0.3},
+            graphics::Color {
+                r: 0.2,
+                g: 0.2,
+                b: 0.2,
+                a: 0.3,
+            },
         )?;
 
         graphics::draw(ctx, &circle, graphics::DrawParam::default())?;
@@ -71,22 +79,23 @@ impl EventHandler for MyGame {
         graphics::present(ctx)
     }
 
-    fn key_down_event(
+    fn mouse_button_down_event(
         &mut self,
         _ctx: &mut Context,
-        keycode: KeyCode,
-        _keymod: KeyMods,
-        _repeat: bool,
+        _button: MouseButton,
+        _x: f32,
+        _y: f32,
     ) {
-        self.p.move_player(keycode, SCREEN_SIZE)
-    }
-
-    fn mouse_button_down_event(&mut self, _ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
         self.p.set_sneeze(true);
-        println!("DOWN!");
     }
 
-    fn mouse_button_up_event(&mut self, _ctx: &mut Context, button: MouseButton, x: f32, y: f32) {
+    fn mouse_button_up_event(
+        &mut self,
+        _ctx: &mut Context,
+        _button: MouseButton,
+        _x: f32,
+        _y: f32,
+    ) {
         self.p.set_sneeze(false);
     }
 }

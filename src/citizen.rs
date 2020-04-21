@@ -10,7 +10,8 @@ pub struct Citizen {
     velocity_x: f32,
     velocity_y: f32,
     angle: f64,
-    resistance_points: f32,
+    // resistance_points: f32,
+    is_infected: bool,
 }
 
 impl Citizen {
@@ -47,6 +48,14 @@ impl Citizen {
             || self.pos_y - self.radius > height
             || self.pos_y + self.radius < 0.0
     }
+
+    pub fn infect(&mut self) {
+        self.is_infected = true;
+    }
+
+    pub fn get_is_infected(self) -> bool {
+        self.is_infected
+    }
 }
 
 pub fn random_citizen((width, height): (f32, f32)) -> Citizen {
@@ -54,10 +63,11 @@ pub fn random_citizen((width, height): (f32, f32)) -> Citizen {
     Citizen {
         pos_x: rng.gen_range(0.0, width),
         pos_y: rng.gen_range(0.0, height),
-        radius: 50.0,
+        radius: 20.0,
         velocity_x: 5.0,
         velocity_y: 5.0,
         angle: 0.0,
-        resistance_points: 0.0,
+        // resistance_points: 0.0,
+        is_infected: false,
     }
 }

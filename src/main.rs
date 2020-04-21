@@ -7,7 +7,7 @@ use std::collections::LinkedList;
 mod citizen;
 mod player;
 
-const SCREEN_SIZE: (f32, f32) = (600.0, 800.0);
+const SCREEN_SIZE: (f32, f32) = (800.0, 600.0);
 
 fn main() {
     // Make a Context.
@@ -67,29 +67,46 @@ impl MyGame {
         self.citizens = self
             .citizens
             .iter()
-            .filter(|cit| ! (cit.is_outside(SCREEN_SIZE)))
-            .map(|&x| x)
+            .filter(|cit| !(cit.is_outside(SCREEN_SIZE)))
+            .copied()
             .collect();
     }
+
+    fn is_victim(cit: citizen::Citizen, pl: player::Player) -> bool {
+        let player_cent = na::Point2::new(pl.get_x(), pl.get_y());
+        let citi_cent = na::Point2::new(cit.get_x(), cit.get_y());
+        let dist = na::distance(&player_cent, &citi_cent);
+        dist < (pl.get_radius() + pl.get_sneeze_range()) && !cit.get_is_infected()
+    }
+
+    fn infection(&mut self) {
+        for cit in self.citizens.iter_mut() {
+            if MyGame::is_victim(*cit, self.p) {
+                cit.infect();
+                self.p.infect();
+            }
+        }
+    }
+
     fn change_citizens_angle(&mut self) {
-      
-      for cit in self.citizens.iter_mut() {
-        cit.change_angle();
-        
-      }
+        for cit in self.citizens.iter_mut() {
+            cit.change_angle();
+        }
     }
 }
 
 impl EventHandler for MyGame {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
         // Change citizen angle every second
-     
+
         while timer::check_update_time(ctx, 1) {
-            self.citizens
-                .push_front(citizen::random_citizen(SCREEN_SIZE));
+            for _ in 0..6 {
+                self.citizens
+                    .push_front(citizen::random_citizen(SCREEN_SIZE));
+            }
             self.change_citizens_angle();
         }
-
+        self.infection();
         self.p
             .move_player(SCREEN_SIZE, input::keyboard::pressed_keys(ctx));
         self.p.sneeze();
@@ -105,52 +122,51 @@ impl EventHandler for MyGame {
 
     /* DRAWING */
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
-        graphics::clear(ctx, graphics::WHITE);
+        graphics::clear(
+            ctx,
+            graphics::Color {
+                r: 0.1,
+                g: 0.0,
+                b: 0.2,
+                a: 1.0,
+            },
+        );
 
         // Draw player
         self.draw_circle(
             ctx,
             self.p.get_x(),
             self.p.get_y(),
-            self.p.get_width() / 2.0,
+            self.p.get_radius(),
             graphics::BLACK,
         )?;
-        // Draw citizen
-        self.draw_circle(
-            ctx,
-            self.citizen.get_x(),
-            self.citizen.get_y(),
-            self.citizen.get_radius(),
-            graphics::Color {
-                r: 0.2,
-                g: 0.0,
-                b: 0.0,
-                a: 0.9,
-            },
-        )?;
-
+        // Draw citizens
         for cit in self.citizens.iter() {
-            self.draw_circle(
-                ctx,
-                cit.get_x(),
-                cit.get_y(),
-                cit.get_radius(),
+            let col = if cit.get_is_infected() {
                 graphics::Color {
                     r: 0.2,
                     g: 0.0,
                     b: 0.0,
                     a: 0.9,
-                },
-            )?;
+                }
+            } else {
+                graphics::Color {
+                    r: 0.0,
+                    g: 0.2,
+                    b: 0.0,
+                    a: 0.9,
+                }
+            };
+            self.draw_circle(ctx, cit.get_x(), cit.get_y(), cit.get_radius(), col)?;
         }
 
-        if self.p.is_sneezing {
+        if self.p.check_if_sneezing() {
             // Draw sneezing
             self.draw_circle(
                 ctx,
                 self.p.get_x(),
                 self.p.get_y(),
-                self.p.get_width() + self.p.get_sneeze_range(),
+                self.p.get_radius() + self.p.get_sneeze_range(),
                 graphics::Color {
                     r: 0.2,
                     g: 0.2,
@@ -159,6 +175,14 @@ impl EventHandler for MyGame {
                 },
             )?;
         }
+
+        let score = graphics::Text::new((
+            format!("Infected: {} ", self.p.get_infected().to_string()),
+            graphics::Font::default(),
+            24.0,
+        ));
+        graphics::draw(ctx, &score, graphics::DrawParam::default())?;
+
         graphics::present(ctx)
     }
 

@@ -4,10 +4,12 @@ use ggez::nalgebra as na;
 use ggez::{graphics, timer, Context, ContextBuilder, GameResult};
 use moveable::Moveable;
 use rand::Rng;
+use infectable::Infectable;
 
 mod citizen;
 mod gamesettings;
 mod moveable;
+mod infectable;
 mod player;
 
 fn main() {
@@ -73,7 +75,13 @@ impl MyGame {
         for cit in self.citizens.iter_mut() {
             if MyGame::is_victim(*cit, self.p) {
                 cit.become_infected();
-                self.p.infect();
+                if cit.needs_doctor() {
+                  cit.call_emergency();
+                  self.p.infect();
+                }
+                
+            } else {
+              cit.cure();
             }
         }
     }
@@ -113,11 +121,12 @@ impl EventHandler for MyGame {
         )?;
         // Citizens drawing.
         for cit in self.citizens.iter() {
-            let col = if cit.get_is_infected() {
-                self.settings.get_disease_color()
-            } else {
-                self.settings.get_health_col()
-            };
+            //let col = if cit.get_is_infected() {
+            //    self.settings.get_disease_color()
+            //} else {
+            //    self.settings.get_health_col()
+            //};
+            let col = cit.get_color( self.settings.get_disease_color(), self.settings.get_health_col()); 
             self.draw_circle(ctx, cit.get_position(), cit.get_radius(), col)?;
         }
 

@@ -32,7 +32,7 @@ impl GameSettings {
                 r: 0.0,
                 g: 0.2,
                 b: 0.0,
-                a: 0.9,
+                a: 1.0,
             },
             disease_color: graphics::Color {
                 r: 0.514,

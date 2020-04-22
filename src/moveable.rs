@@ -72,6 +72,10 @@ impl EntityParams {
         self.center += self.speed * self.velocity
     }
 
+    pub fn stop(&mut self) {
+      self.speed = 0.0;
+    }
+
     pub fn random((width, height): (f32, f32)) -> EntityParams {
         let mut rng = rand::thread_rng();
         let angle: f64 = rng.gen_range(0.0, 360.0);

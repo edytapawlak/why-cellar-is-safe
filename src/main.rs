@@ -2,14 +2,16 @@ use ggez::event::{self, EventHandler, MouseButton};
 use ggez::input;
 use ggez::nalgebra as na;
 use ggez::{graphics, timer, Context, ContextBuilder, GameResult};
+use movingbeing::MovingBeing;
 use rand::Rng;
 
 mod citizen;
 mod gamesettings;
+mod movingbeing;
 mod player;
 
 fn main() {
-    // Make a Context.
+    /* Make settings, context and the game */
     let settings = gamesettings::GameSettings::default();
     let (mut ctx, mut event_loop) = ContextBuilder::new("Why cellar is safe", "E")
         .window_mode(
@@ -19,12 +21,9 @@ fn main() {
         .build()
         .expect("aieee, could not create ggez context!");
 
-    // Create an instance of your event handler.
-    // Usually, you should provide it with the Context object to
-    // use when setting your game up.
     let mut my_game = MyGame::new(&mut ctx, settings);
 
-    // Run!
+    /* Run */
     match event::run(&mut ctx, &mut event_loop, &mut my_game) {
         Ok(_) => println!("Exited cleanly."),
         Err(e) => println!("Error occured: {}", e),
@@ -39,14 +38,14 @@ struct MyGame {
 
 impl MyGame {
     pub fn new(_ctx: &mut Context, settings: gamesettings::GameSettings) -> MyGame {
-        // Load/create resources such as images here.
+        /* List of random citizens */
         let mut l = Vec::new();
         for _ in 0..(settings.get_citizens_quan()) {
             l.push(citizen::random_citizen(settings.get_screen_size()));
         }
         MyGame {
             settings,
-            p: player::default_player(),
+            p: player::default_player(settings.get_screen_size()),
             citizens: l,
         }
     }
@@ -54,25 +53,18 @@ impl MyGame {
     pub fn draw_circle(
         &self,
         ctx: &mut Context,
-        pos_x: f32,
-        pos_y: f32,
+        pos: na::Point2<f32>,
         radius: f32,
         color: graphics::Color,
     ) -> GameResult<()> {
-        let circle = graphics::Mesh::new_circle(
-            ctx,
-            graphics::DrawMode::fill(),
-            na::Point2::new(pos_x, pos_y),
-            radius,
-            2.0,
-            color,
-        )?;
+        let circle =
+            graphics::Mesh::new_circle(ctx, graphics::DrawMode::fill(), pos, radius, 2.0, color)?;
         graphics::draw(ctx, &circle, graphics::DrawParam::default())
     }
 
     fn is_victim(cit: citizen::Citizen, pl: player::Player) -> bool {
-        let player_cent = na::Point2::new(pl.get_x(), pl.get_y());
-        let citi_cent = na::Point2::new(cit.get_x(), cit.get_y());
+        let player_cent = pl.get_position();
+        let citi_cent = cit.get_position();
         let dist = na::distance(&player_cent, &citi_cent);
         dist < (pl.get_radius() + pl.get_sneeze_range()) && !cit.get_is_infected()
     }
@@ -80,7 +72,7 @@ impl MyGame {
     fn infection(&mut self) {
         for cit in self.citizens.iter_mut() {
             if MyGame::is_victim(*cit, self.p) {
-                cit.infect();
+                cit.become_infected();
                 self.p.infect();
             }
         }
@@ -89,7 +81,7 @@ impl MyGame {
 
 impl EventHandler for MyGame {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
-        // Change random citizen angle every second
+        /* Choose citizen randomly and change his angle  */
         while timer::check_update_time(ctx, 1) {
             let mut rng = rand::thread_rng();
             let r = rng.gen_range(0, 10);
@@ -104,7 +96,7 @@ impl EventHandler for MyGame {
         self.p.sneeze();
 
         for cit in self.citizens.iter_mut() {
-            cit.move_citizen(self.settings.get_screen_size());
+            cit.move_being(self.settings.get_screen_size());
         }
         Ok(())
     }
@@ -113,30 +105,28 @@ impl EventHandler for MyGame {
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         graphics::clear(ctx, self.settings.get_bg_col());
 
-        // Draw player
+        /* Player drawing */
         self.draw_circle(
             ctx,
-            self.p.get_x(),
-            self.p.get_y(),
+            self.p.get_position(),
             self.p.get_radius(),
             self.settings.get_player_col(),
         )?;
-        // Draw citizens
+        /* Citizens drawing */
         for cit in self.citizens.iter() {
             let col = if cit.get_is_infected() {
                 self.settings.get_disease_color()
             } else {
                 self.settings.get_health_col()
             };
-            self.draw_circle(ctx, cit.get_x(), cit.get_y(), cit.get_radius(), col)?;
+            self.draw_circle(ctx, cit.get_position(), cit.get_radius(), col)?;
         }
 
         if self.p.check_if_sneezing() {
-            // Draw sneezing
+            /* Draw sneeze range */
             self.draw_circle(
                 ctx,
-                self.p.get_x(),
-                self.p.get_y(),
+                self.p.get_position(),
                 self.p.get_radius() + self.p.get_sneeze_range(),
                 self.settings.get_sneeze_color(),
             )?;

@@ -1,11 +1,14 @@
 use ggez::event::KeyCode;
+use ggez::nalgebra as na;
 use std::collections::HashSet;
+
+use crate::movingbeing::EntityParams;
+use crate::movingbeing::MovingBeing;
+use crate::movingbeing::Zone;
 
 #[derive(Clone, Copy)]
 pub struct Player {
-    pos_x: f32,
-    pos_y: f32,
-    radius: f32,
+    ent_params: EntityParams,
     sneeze_range: f32,
     sneeze_max: f32,
     is_sneezing: bool,
@@ -14,32 +17,30 @@ pub struct Player {
 
 impl Player {
     pub fn move_player(&mut self, (width, height): (f32, f32), pressed_keys: &HashSet<KeyCode>) {
-        if pressed_keys.contains(&KeyCode::Left) {
-            if self.pos_x + (self.radius) > 0.0 {
-                self.pos_x -= 10.0
-            } else {
-                self.pos_x = width + self.radius
-            }
-        }
-        if pressed_keys.contains(&KeyCode::Right) {
-            if self.pos_x - (self.radius) < width {
-                self.pos_x += 10.0
-            } else {
-                self.pos_x = -self.radius
-            }
-        }
-        if pressed_keys.contains(&KeyCode::Down) {
-            if self.pos_y - self.radius < height {
-                self.pos_y += 10.0
-            } else {
-                self.pos_y = -self.radius
-            }
-        }
-        if pressed_keys.contains(&KeyCode::Up) {
-            if self.pos_y + self.radius > 0.0 {
-                self.pos_y -= 10.0
-            } else {
-                self.pos_y = height + self.radius
+        let r = self.ent_params.get_radius();
+        match self.ent_params.where_is((width, height)) {
+            Zone::LeftBorder => self.ent_params.set_cx(width + r),
+            Zone::RightBorder => self.ent_params.set_cx(-r),
+            Zone::BottomBorder => self.ent_params.set_cy(-r),
+            Zone::UpBorder => self.ent_params.set_cy(height + r),
+            Zone::Inside => {
+                let c = self.get_position();
+                let s = self.get_speed();
+
+                self.ent_params.set_velocity(na::Vector2::new(0.0, 0.0));
+                if pressed_keys.contains(&KeyCode::Left) {
+                    self.ent_params.set_cx(c.x - s);
+                };
+                if pressed_keys.contains(&KeyCode::Right) {
+                    self.ent_params.set_cx(c.x + s);
+                }
+                if pressed_keys.contains(&KeyCode::Up) {
+                    self.ent_params.set_cy(c.y - s);
+                }
+                if pressed_keys.contains(&KeyCode::Down) {
+                    self.ent_params.set_cy(c.y + s);
+                }
+                self.ent_params.move_step();
             }
         }
     }
@@ -73,25 +74,42 @@ impl Player {
     pub fn set_sneeze(&mut self, s: bool) {
         self.is_sneezing = s;
     }
+}
 
-    pub fn get_x(self) -> f32 {
-        self.pos_x
+impl MovingBeing for Player {
+    fn get_position(&self) -> na::Point2<f32> {
+        self.ent_params.get_center()
     }
 
-    pub fn get_y(self) -> f32 {
-        self.pos_y
+    fn get_radius(self) -> f32 {
+        self.ent_params.get_radius()
     }
 
-    pub fn get_radius(self) -> f32 {
-        self.radius
+    fn get_speed(self) -> f32 {
+        self.ent_params.get_speed()
+    }
+
+    fn move_being(&mut self, (width, height): (f32, f32)) {
+        let r = self.ent_params.get_radius();
+        match self.ent_params.where_is((width, height)) {
+            Zone::LeftBorder => self.ent_params.set_cx(width + r),
+            Zone::RightBorder => self.ent_params.set_cx(-r),
+            Zone::BottomBorder => self.ent_params.set_cy(-r),
+            Zone::UpBorder => self.ent_params.set_cy(height + r),
+            Zone::Inside => self.ent_params.move_step(),
+        }
     }
 }
 
-pub fn default_player() -> Player {
+pub fn default_player((width, height): (f32, f32)) -> Player {
+    let params: EntityParams = EntityParams::new(
+        na::Point2::new(width / 2.0, height / 2.0),
+        20.0,
+        na::Vector2::new(0.0, 0.0),
+        5.0,
+    );
     Player {
-        pos_x: 100.0,
-        pos_y: 100.0,
-        radius: 20.0,
+        ent_params: params,
         sneeze_range: 5.0,
         sneeze_max: 30.0,
         is_sneezing: false,

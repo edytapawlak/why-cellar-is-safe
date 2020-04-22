@@ -5,22 +5,24 @@ use ggez::{graphics, timer, Context, ContextBuilder, GameResult};
 use rand::Rng;
 
 mod citizen;
+mod gamesettings;
 mod player;
-
-const SCREEN_SIZE: (f32, f32) = (800.0, 600.0);
-const CITIZENT_QUANTITY: i32 = 50;
 
 fn main() {
     // Make a Context.
+    let settings = gamesettings::GameSettings::default();
     let (mut ctx, mut event_loop) = ContextBuilder::new("Why cellar is safe", "E")
-        .window_mode(ggez::conf::WindowMode::default().dimensions(SCREEN_SIZE.0, SCREEN_SIZE.1))
+        .window_mode(
+            ggez::conf::WindowMode::default()
+                .dimensions(settings.get_screen_width(), settings.get_screen_height()),
+        )
         .build()
         .expect("aieee, could not create ggez context!");
 
     // Create an instance of your event handler.
     // Usually, you should provide it with the Context object to
     // use when setting your game up.
-    let mut my_game = MyGame::new(&mut ctx);
+    let mut my_game = MyGame::new(&mut ctx, settings);
 
     // Run!
     match event::run(&mut ctx, &mut event_loop, &mut my_game) {
@@ -30,18 +32,20 @@ fn main() {
 }
 
 struct MyGame {
+    settings: gamesettings::GameSettings,
     p: player::Player,
     citizens: Vec<citizen::Citizen>,
 }
 
 impl MyGame {
-    pub fn new(_ctx: &mut Context) -> MyGame {
+    pub fn new(_ctx: &mut Context, settings: gamesettings::GameSettings) -> MyGame {
         // Load/create resources such as images here.
         let mut l = Vec::new();
-        for _ in 0..CITIZENT_QUANTITY {
-            l.push(citizen::random_citizen(SCREEN_SIZE));
+        for _ in 0..(settings.get_citizens_quan()) {
+            l.push(citizen::random_citizen(settings.get_screen_size()));
         }
         MyGame {
+            settings,
             p: player::default_player(),
             citizens: l,
         }
@@ -85,8 +89,7 @@ impl MyGame {
 
 impl EventHandler for MyGame {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
-        // Change citizen angle every second
-
+        // Change random citizen angle every second
         while timer::check_update_time(ctx, 1) {
             let mut rng = rand::thread_rng();
             let r = rng.gen_range(0, 10);
@@ -94,27 +97,21 @@ impl EventHandler for MyGame {
         }
 
         self.infection();
-        self.p
-            .move_player(SCREEN_SIZE, input::keyboard::pressed_keys(ctx));
+        self.p.move_player(
+            self.settings.get_screen_size(),
+            input::keyboard::pressed_keys(ctx),
+        );
         self.p.sneeze();
 
         for cit in self.citizens.iter_mut() {
-            cit.move_citizen(SCREEN_SIZE);
+            cit.move_citizen(self.settings.get_screen_size());
         }
         Ok(())
     }
 
     /* DRAWING */
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
-        graphics::clear(
-            ctx,
-            graphics::Color {
-                r: 0.404,
-                g: 0.561,
-                b: 0.220,
-                a: 1.0,
-            },
-        );
+        graphics::clear(ctx, self.settings.get_bg_col());
 
         // Draw player
         self.draw_circle(
@@ -122,29 +119,14 @@ impl EventHandler for MyGame {
             self.p.get_x(),
             self.p.get_y(),
             self.p.get_radius(),
-            graphics::Color {
-                r: 0.8,
-                g: 0.624,
-                b: 0.353,
-                a: 1.0,
-            },
+            self.settings.get_player_col(),
         )?;
         // Draw citizens
         for cit in self.citizens.iter() {
             let col = if cit.get_is_infected() {
-                graphics::Color {
-                    r: 0.514,
-                    g: 0.004,
-                    b: 0.145,
-                    a: 1.0,
-                }
+                self.settings.get_disease_color()
             } else {
-                graphics::Color {
-                    r: 0.0,
-                    g: 0.2,
-                    b: 0.0,
-                    a: 0.9,
-                }
+                self.settings.get_health_col()
             };
             self.draw_circle(ctx, cit.get_x(), cit.get_y(), cit.get_radius(), col)?;
         }
@@ -156,12 +138,7 @@ impl EventHandler for MyGame {
                 self.p.get_x(),
                 self.p.get_y(),
                 self.p.get_radius() + self.p.get_sneeze_range(),
-                graphics::Color {
-                    r: 0.2,
-                    g: 0.2,
-                    b: 0.2,
-                    a: 0.3,
-                },
+                self.settings.get_sneeze_color(),
             )?;
         }
 

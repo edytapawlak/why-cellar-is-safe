@@ -2,16 +2,16 @@ use ggez::event::{self, EventHandler, MouseButton};
 use ggez::input;
 use ggez::nalgebra as na;
 use ggez::{graphics, timer, Context, ContextBuilder, GameResult};
-use movingbeing::MovingBeing;
+use moveable::Moveable;
 use rand::Rng;
 
 mod citizen;
 mod gamesettings;
-mod movingbeing;
+mod moveable;
 mod player;
 
 fn main() {
-    /* Make settings, context and the game */
+    // Make settings, context and the game.
     let settings = gamesettings::GameSettings::default();
     let (mut ctx, mut event_loop) = ContextBuilder::new("Why cellar is safe", "E")
         .window_mode(
@@ -23,7 +23,7 @@ fn main() {
 
     let mut my_game = MyGame::new(&mut ctx, settings);
 
-    /* Run */
+    // Run.
     match event::run(&mut ctx, &mut event_loop, &mut my_game) {
         Ok(_) => println!("Exited cleanly."),
         Err(e) => println!("Error occured: {}", e),
@@ -38,7 +38,7 @@ struct MyGame {
 
 impl MyGame {
     pub fn new(_ctx: &mut Context, settings: gamesettings::GameSettings) -> MyGame {
-        /* List of random citizens */
+        // List of random citizens.
         let mut l = Vec::new();
         for _ in 0..(settings.get_citizens_quan()) {
             l.push(citizen::random_citizen(settings.get_screen_size()));
@@ -81,7 +81,7 @@ impl MyGame {
 
 impl EventHandler for MyGame {
     fn update(&mut self, ctx: &mut Context) -> GameResult<()> {
-        /* Choose citizen randomly and change his angle  */
+        // Choose citizen randomly and change his angle.
         while timer::check_update_time(ctx, 1) {
             let mut rng = rand::thread_rng();
             let r = rng.gen_range(0, 10);
@@ -101,18 +101,17 @@ impl EventHandler for MyGame {
         Ok(())
     }
 
-    /* DRAWING */
     fn draw(&mut self, ctx: &mut Context) -> GameResult<()> {
         graphics::clear(ctx, self.settings.get_bg_col());
 
-        /* Player drawing */
+        // Player drawing.
         self.draw_circle(
             ctx,
             self.p.get_position(),
             self.p.get_radius(),
             self.settings.get_player_col(),
         )?;
-        /* Citizens drawing */
+        // Citizens drawing.
         for cit in self.citizens.iter() {
             let col = if cit.get_is_infected() {
                 self.settings.get_disease_color()
@@ -123,7 +122,7 @@ impl EventHandler for MyGame {
         }
 
         if self.p.check_if_sneezing() {
-            /* Draw sneeze range */
+            // Draw sneeze range.
             self.draw_circle(
                 ctx,
                 self.p.get_position(),

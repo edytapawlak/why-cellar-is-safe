@@ -1,7 +1,7 @@
 use ggez::nalgebra as na;
 use rand::Rng;
 
-pub trait MovingBeing {
+pub trait Moveable {
     fn get_position(&self) -> na::Point2<f32>;
     fn get_radius(self) -> f32;
     fn get_speed(self) -> f32;
@@ -92,4 +92,3 @@ impl EntityParams {
         }
     }
 }
-

@@ -2,9 +2,9 @@ use ggez::event::KeyCode;
 use ggez::nalgebra as na;
 use std::collections::HashSet;
 
-use crate::movingbeing::EntityParams;
-use crate::movingbeing::MovingBeing;
-use crate::movingbeing::Zone;
+use crate::moveable::EntityParams;
+use crate::moveable::Moveable;
+use crate::moveable::Zone;
 
 #[derive(Clone, Copy)]
 pub struct Player {
@@ -76,7 +76,7 @@ impl Player {
     }
 }
 
-impl MovingBeing for Player {
+impl Moveable for Player {
     fn get_position(&self) -> na::Point2<f32> {
         self.ent_params.get_center()
     }

@@ -1,9 +1,9 @@
 use ggez::nalgebra as na;
 use rand::Rng;
 
-use crate::movingbeing::EntityParams;
-use crate::movingbeing::MovingBeing;
-use crate::movingbeing::Zone;
+use crate::moveable::EntityParams;
+use crate::moveable::Moveable;
+use crate::moveable::Zone;
 
 #[derive(Copy, Clone)]
 pub struct Citizen {
@@ -29,7 +29,7 @@ impl Citizen {
     }
 }
 
-impl MovingBeing for Citizen {
+impl Moveable for Citizen {
     fn get_position(&self) -> na::Point2<f32> {
         self.ent_params.get_center()
     }

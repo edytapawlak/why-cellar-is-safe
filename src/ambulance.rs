@@ -25,13 +25,7 @@ impl Ambulance {
         self.is_free
     }
 
-    pub fn set_destination(
-        &mut self,
-        cid: usize,
-        dest: na::Point2<f32>,
-        width: f32,
-        height: f32)
-     {
+    pub fn set_destination(&mut self, cid: usize, dest: na::Point2<f32>, width: f32, height: f32) {
         self.destination = dest;
         self.patient = Some(cid);
         self.is_free = false;
@@ -101,7 +95,7 @@ impl Moveable for Ambulance {
 pub fn new(width: f32, height: f32, dest: na::Point2<f32>) -> Ambulance {
     let mut rng = rand::thread_rng();
     let zone: Zone = rand::random();
-    let r = 10.0; 
+    let r = 10.0;
     let start = match zone {
         Zone::LeftBorder => na::Point2::new(-r, rng.gen_range(0.0, height)),
         Zone::RightBorder => na::Point2::new(width + r, rng.gen_range(0.0, height)),

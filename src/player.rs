@@ -41,7 +41,7 @@ impl Player {
         graphics::draw(ctx, &circle, graphics::DrawParam::default())
     }
 
-    pub fn move_player(&mut self, width: f32 , height: f32, pressed_keys: &HashSet<KeyCode>) {
+    pub fn move_player(&mut self, width: f32, height: f32, pressed_keys: &HashSet<KeyCode>) {
         let r = self.ent_params.get_radius();
         match self.ent_params.where_is(width, height) {
             Zone::LeftBorder => self.ent_params.set_cx(width + r),
@@ -126,7 +126,7 @@ impl Moveable for Player {
     }
 }
 
-pub fn init(width: f32, height:f32 ) -> Player {
+pub fn init(width: f32, height: f32) -> Player {
     let params: EntityParams = EntityParams::new(
         na::Point2::new(width / 2.0, height / 2.0),
         20.0,

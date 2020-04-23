@@ -1,3 +1,4 @@
+use ggez::conf;
 use ggez::event::{self, EventHandler, MouseButton};
 use ggez::input;
 use ggez::nalgebra as na;
@@ -5,6 +6,8 @@ use ggez::{graphics, timer, Context, ContextBuilder, GameResult};
 use infectable::Infectable;
 use moveable::Moveable;
 use rand::Rng;
+use std::env;
+use std::path;
 
 mod ambulance;
 mod citizen;
@@ -14,6 +17,14 @@ mod moveable;
 mod player;
 
 fn main() {
+    let resource_dir = if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
+        let mut path = path::PathBuf::from(manifest_dir);
+        path.push("resources");
+        path
+    } else {
+        path::PathBuf::from("./resources")
+    };
+
     // Make settings, context and the game.
     let settings = gamesettings::GameSettings::default();
     let (mut ctx, mut event_loop) = ContextBuilder::new("Why cellar is safe", "E")
@@ -21,6 +32,7 @@ fn main() {
             ggez::conf::WindowMode::default()
                 .dimensions(settings.get_screen_width(), settings.get_screen_height()),
         )
+        .add_resource_path(resource_dir)
         .build()
         .expect("aieee, could not create ggez context!");
 
@@ -56,7 +68,11 @@ impl MyGame {
             settings,
             p: player::init(settings.get_screen_width(), settings.get_screen_height()),
             citizens: l,
-            ambulance: ambulance::new(settings.get_screen_width(), settings.get_screen_height(), na::Point2::new(400.0, 00.0)),
+            ambulance: ambulance::new(
+                settings.get_screen_width(),
+                settings.get_screen_height(),
+                na::Point2::new(400.0, 00.0),
+            ),
         }
     }
 
@@ -78,7 +94,7 @@ impl MyGame {
                         cit.get_id(),
                         cit.get_position(),
                         self.settings.get_screen_width(),
-                        self.settings.get_screen_height()
+                        self.settings.get_screen_height(),
                     );
                 }
             } else {
@@ -114,7 +130,7 @@ impl EventHandler for MyGame {
         }
 
         self.p
-            .move_player( swidth, sheight, input::keyboard::pressed_keys(ctx));
+            .move_player(swidth, sheight, input::keyboard::pressed_keys(ctx));
 
         self.p.sneeze();
 

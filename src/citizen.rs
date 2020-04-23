@@ -64,8 +64,8 @@ impl Citizen {
         self.id
     }
 
-    pub fn stop(&mut self){
-      self.ent_params.stop();
+    pub fn stop(&mut self) {
+        self.ent_params.stop();
     }
 }
 

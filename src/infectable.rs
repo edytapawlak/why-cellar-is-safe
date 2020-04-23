@@ -9,7 +9,6 @@ pub trait Infectable {
 pub struct InfectionParams {
     immunity: i32,
     health: i32,
-    // has_symptops : bool,
 }
 
 impl InfectionParams {

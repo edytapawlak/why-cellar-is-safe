@@ -1,4 +1,3 @@
-use ggez::conf;
 use ggez::event::{self, EventHandler, MouseButton};
 use ggez::input;
 use ggez::nalgebra as na;
@@ -17,6 +16,7 @@ mod moveable;
 mod player;
 
 fn main() {
+    // Make place to store resources.
     let resource_dir = if let Ok(manifest_dir) = env::var("CARGO_MANIFEST_DIR") {
         let mut path = path::PathBuf::from(manifest_dir);
         path.push("resources");

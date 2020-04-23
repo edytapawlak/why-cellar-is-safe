@@ -26,7 +26,7 @@ impl InfectionParams {
 
     pub fn infect(&mut self) {
         if self.health > 0 {
-            self.health -= 1;
+            self.health -= 10;
         }
     }
 
@@ -48,8 +48,8 @@ impl InfectionParams {
 impl Default for InfectionParams {
     fn default() -> Self {
         InfectionParams {
-            immunity: 10,
-            health: 10,
+            immunity: 100,
+            health: 100,
         }
     }
 }

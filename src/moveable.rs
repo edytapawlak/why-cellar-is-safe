@@ -1,19 +1,34 @@
 use ggez::nalgebra as na;
-use rand::Rng;
+use rand::{
+    distributions::{Distribution, Standard},
+    Rng,
+};
 
 pub trait Moveable {
     fn get_position(&self) -> na::Point2<f32>;
     fn get_radius(self) -> f32;
     fn get_speed(self) -> f32;
-    fn move_being(&mut self, screen_size: (f32, f32));
+    fn move_being(&mut self, screen_width: f32, screen_height: f32);
 }
 
+#[derive(PartialEq)]
 pub enum Zone {
     LeftBorder,
     RightBorder,
     UpBorder,
     BottomBorder,
     Inside,
+}
+impl Distribution<Zone> for Standard {
+    fn sample<R: Rng + ?Sized>(&self, rng: &mut R) -> Zone {
+        match (rng.gen_range(0.0, 4.0) as f32).floor() as i32 {
+            0 => Zone::LeftBorder,
+            1 => Zone::RightBorder,
+            2 => Zone::UpBorder,
+            3 => Zone::BottomBorder,
+            _ => Zone::Inside,
+        }
+    }
 }
 
 #[derive(Copy, Clone)]
@@ -41,6 +56,10 @@ impl EntityParams {
         self.velocity = v;
     }
 
+    pub fn come_back(&mut self) {
+        self.velocity = -self.velocity;
+    }
+
     pub fn set_cx(&mut self, x: f32) {
         self.center.x = x;
     }
@@ -49,7 +68,11 @@ impl EntityParams {
         self.center.y = y;
     }
 
-    pub fn where_is(self, (width, height): (f32, f32)) -> Zone {
+    pub fn set_speed(&mut self, s: f32) {
+        self.speed = s;
+    }
+
+    pub fn where_is(self, width: f32, height: f32) -> Zone {
         let center = self.center;
         let r = self.radius;
 
@@ -73,7 +96,7 @@ impl EntityParams {
     }
 
     pub fn stop(&mut self) {
-      self.speed = 0.0;
+        self.speed = 0.0;
     }
 
     pub fn random((width, height): (f32, f32)) -> EntityParams {

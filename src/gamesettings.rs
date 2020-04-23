@@ -2,7 +2,8 @@ use ggez::graphics;
 
 #[derive(Copy, Clone)]
 pub struct GameSettings {
-    screen_size: (f32, f32),
+    screen_width: f32,
+    screen_height: f32,
     citizen_quantity: i32,
     bg_color: graphics::Color,
     player_color: graphics::Color,
@@ -11,10 +12,11 @@ pub struct GameSettings {
     sneeze_color: graphics::Color,
 }
 
-impl GameSettings {
-    pub fn default() -> GameSettings {
+impl Default for GameSettings {
+    fn default() -> Self {
         GameSettings {
-            screen_size: (800.0, 600.0),
+            screen_width: 800.0,
+            screen_height: 600.0,
             citizen_quantity: 50,
             bg_color: graphics::Color {
                 r: 0.404,
@@ -48,7 +50,8 @@ impl GameSettings {
             },
         }
     }
-
+}
+impl GameSettings {
     pub fn get_player_col(self) -> graphics::Color {
         self.player_color
     }
@@ -69,18 +72,14 @@ impl GameSettings {
         self.citizen_quantity
     }
 
-    pub fn get_screen_size(self) -> (f32, f32) {
-        self.screen_size
-    }
-
     pub fn get_sneeze_color(self) -> graphics::Color {
         self.sneeze_color
     }
 
     pub fn get_screen_width(self) -> f32 {
-        self.screen_size.0
+        self.screen_width
     }
     pub fn get_screen_height(self) -> f32 {
-        self.screen_size.1
+        self.screen_height
     }
 }

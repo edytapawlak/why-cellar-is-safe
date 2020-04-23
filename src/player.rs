@@ -1,5 +1,6 @@
 use ggez::event::KeyCode;
 use ggez::nalgebra as na;
+use ggez::{graphics, Context, GameResult};
 use std::collections::HashSet;
 
 use crate::moveable::EntityParams;
@@ -16,9 +17,33 @@ pub struct Player {
 }
 
 impl Player {
-    pub fn move_player(&mut self, (width, height): (f32, f32), pressed_keys: &HashSet<KeyCode>) {
+    pub fn draw_player(self, ctx: &mut Context, color: graphics::Color) -> GameResult<()> {
+        let circle = graphics::Mesh::new_circle(
+            ctx,
+            graphics::DrawMode::fill(),
+            self.get_position(),
+            self.get_radius(),
+            2.0,
+            color,
+        )?;
+        graphics::draw(ctx, &circle, graphics::DrawParam::default())
+    }
+
+    pub fn draw_sneezing(self, ctx: &mut Context, color: graphics::Color) -> GameResult<()> {
+        let circle = graphics::Mesh::new_circle(
+            ctx,
+            graphics::DrawMode::fill(),
+            self.get_position(),
+            self.get_radius() + self.get_sneeze_range(),
+            2.0,
+            color,
+        )?;
+        graphics::draw(ctx, &circle, graphics::DrawParam::default())
+    }
+
+    pub fn move_player(&mut self, width: f32 , height: f32, pressed_keys: &HashSet<KeyCode>) {
         let r = self.ent_params.get_radius();
-        match self.ent_params.where_is((width, height)) {
+        match self.ent_params.where_is(width, height) {
             Zone::LeftBorder => self.ent_params.set_cx(width + r),
             Zone::RightBorder => self.ent_params.set_cx(-r),
             Zone::BottomBorder => self.ent_params.set_cy(-r),
@@ -89,9 +114,9 @@ impl Moveable for Player {
         self.ent_params.get_speed()
     }
 
-    fn move_being(&mut self, (width, height): (f32, f32)) {
+    fn move_being(&mut self, width: f32, height: f32) {
         let r = self.ent_params.get_radius();
-        match self.ent_params.where_is((width, height)) {
+        match self.ent_params.where_is(width, height) {
             Zone::LeftBorder => self.ent_params.set_cx(width + r),
             Zone::RightBorder => self.ent_params.set_cx(-r),
             Zone::BottomBorder => self.ent_params.set_cy(-r),
@@ -101,7 +126,7 @@ impl Moveable for Player {
     }
 }
 
-pub fn default_player((width, height): (f32, f32)) -> Player {
+pub fn init(width: f32, height:f32 ) -> Player {
     let params: EntityParams = EntityParams::new(
         na::Point2::new(width / 2.0, height / 2.0),
         20.0,

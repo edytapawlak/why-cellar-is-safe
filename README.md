@@ -11,4 +11,4 @@ Use arrows to move the (anti)hero. Press Left Mouse Button to sneeze.
 
 ## Preview
 
-<img src="https://j.gifs.com/E8pQ8k.gif" width="500" />
+<img src="https://j.gifs.com/2xNEKN.gif" width="500"/>
